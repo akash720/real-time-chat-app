@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chat-backend
+  template:
+    metadata:
+      labels:
+        app: chat-backend
+    spec:
+      containers:
+      - name: chat-backend
+        image: chat-backend:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DJANGO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: chat-secrets
+              key: django-secret-key
+        - name: DEBUG
+          value: "1"
+        - name: POSTGRES_DB
+          value: chat_db
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: chat-secrets
+              key: postgres-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: chat-secrets
+              key: postgres-password
+        - name: POSTGRES_HOST
+          value: postgres
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: REDIS_HOST
+          value: redis
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-backend
+spec:
+  selector:
+    app: chat-backend
+  ports:
+  - port: 8000
+    targetPort: 8000
+  type: LoadBalancer 

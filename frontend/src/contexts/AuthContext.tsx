@@ -17,6 +17,38 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Create axios instance with default config
+const api = axios.create({
+  baseURL: 'http://localhost:8000'
+});
+
+// Add interceptor to handle token refresh
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        const refreshToken = localStorage.getItem('refresh_token');
+        const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+          refresh: refreshToken
+        });
+        const { access } = response.data;
+        localStorage.setItem('token', access);
+        originalRequest.headers['Authorization'] = `Bearer ${access}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refresh_token');
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -28,37 +60,43 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsAuthenticated(true);
-      fetchUserData();
-    }
-  }, []);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchUserData = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/users/me/', {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No token found');
+      }
+
+      const response = await api.get('/api/users/me/', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${token}`
         }
       });
       setUser(response.data);
+      setIsAuthenticated(true);
     } catch (error) {
       console.error('Error fetching user data:', error);
       logout();
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
   const login = async (username: string, password: string) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/token/', {
+      const response = await api.post('/api/token/', {
         username,
         password
       });
-      localStorage.setItem('token', response.data.access);
-      localStorage.setItem('refresh_token', response.data.refresh);
+      const { access, refresh } = response.data;
+      localStorage.setItem('token', access);
+      localStorage.setItem('refresh_token', refresh);
       setIsAuthenticated(true);
       await fetchUserData();
     } catch (error) {
@@ -69,7 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (username: string, email: string, password: string) => {
     try {
-      await axios.post('http://localhost:8000/api/users/', {
+      await api.post('/api/users/', {
         username,
         email,
         password
@@ -87,6 +125,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAuthenticated(false);
     setUser(null);
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, login, register, logout }}>

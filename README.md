@@ -1,3 +1,5 @@
+# Work In Progress...
+
 # Real-Time Chat Application
 
 A production-ready real-time chat application built with Django REST Framework and React.

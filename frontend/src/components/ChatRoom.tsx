@@ -148,7 +148,11 @@ const ChatRoom: React.FC = () => {
                       : 'bg-gray-100 text-gray-900'
                   }`}
                 >
-                  <p className="text-sm font-medium mb-1">{message.user.username}</p>
+                  {message.user.id !== user?.id && (
+                    <p className="text-sm font-bold mb-1 text-indigo-600">
+                      {message.user.username}
+                    </p>
+                  )}
                   <p className="text-sm">{message.content}</p>
                   <p className="text-xs mt-1 opacity-75">
                     {new Date(message.timestamp).toLocaleTimeString()}

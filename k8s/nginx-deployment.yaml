@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chat-nginx
+  template:
+    metadata:
+      labels:
+        app: chat-nginx
+    spec:
+      containers:
+      - name: chat-nginx
+        image: chat-nginx:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-nginx-service
+spec:
+  selector:
+    app: chat-nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer 

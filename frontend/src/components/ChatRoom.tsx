@@ -139,7 +139,6 @@ const ChatRoom: React.FC = () => {
             {room?.name}
           </h1>
           <div className="flex items-center space-x-4">
-            <span className="text-gray-700">Welcome, {user?.username}!</span>
             <button
               onClick={handleLogout}
               className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"

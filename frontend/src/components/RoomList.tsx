@@ -56,6 +56,22 @@ const RoomList: React.FC = () => {
     }
   };
 
+  const deleteRoom = async (roomId: number) => {
+    if (window.confirm('Are you sure you want to delete this room?')) {
+      try {
+        await axios.delete(`http://localhost:8000/api/rooms/${roomId}/`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        fetchRooms();
+      } catch (error) {
+        console.error('Error deleting room:', error);
+        alert('Failed to delete room. You might not have permission.');
+      }
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -103,24 +119,34 @@ const RoomList: React.FC = () => {
           <ul className="divide-y divide-gray-200">
             {filteredRooms.length > 0 ? (
               filteredRooms.map((room) => (
-                <li key={room.id}>
+                <li key={room.id} className="flex items-center justify-between">
                   <Link
                     to={`/room/${room.id}`}
-                    className="block hover:bg-gray-50"
+                    className="block flex-grow px-4 py-4 sm:px-6 hover:bg-gray-50"
                   >
-                    <div className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-indigo-600 truncate">
-                          {room.name}
-                        </p>
-                        <div className="ml-2 flex-shrink-0 flex">
-                          <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            Created by {room.created_by.username}
-                          </p>
-                        </div>
-                      </div>
+                    <div className="flex items-center">
+                      <p className="text-sm font-medium text-indigo-600 truncate">
+                        {room.name}
+                      </p>
                     </div>
                   </Link>
+                  <div className="ml-2 flex-shrink-0 flex items-center space-x-2 pr-4 sm:pr-6">
+                    <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      Created by {room.created_by.username}
+                    </p>
+                    {user?.username === room.created_by.username && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          deleteRoom(room.id);
+                        }}
+                        className="px-2 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </li>
               ))
             ) : (

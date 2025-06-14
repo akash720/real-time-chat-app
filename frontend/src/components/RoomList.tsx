@@ -82,10 +82,15 @@ const RoomList: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Chat Rooms</h1>
+    <div className="min-h-screen bg-gray-100 flex flex-col">
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            <Link to="/">
+              <img src="/logo1.png" alt="App Logo" className="h-12 w-auto" />
+            </Link>
+            <h1 className="text-3xl font-bold text-gray-900">Chat Rooms</h1>
+          </div>
           <div className="flex items-center space-x-4">
             <span className="text-gray-700">Welcome, {user?.username}!</span>
             <button
@@ -96,63 +101,66 @@ const RoomList: React.FC = () => {
             </button>
           </div>
         </div>
-
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6 mb-6">
-          <div className="flex items-center space-x-4">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search rooms..."
-              className="flex-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-            />
-            <button
-              onClick={() => setShowCreateRoomModal(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Create New Room
-            </button>
+      </header>
+      <div className="flex-1">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6 mb-6 w-full">
+            <div className="flex items-center space-x-4">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search rooms..."
+                className="flex-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              />
+              <button
+                onClick={() => setShowCreateRoomModal(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Create New Room
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <ul className="divide-y divide-gray-200">
-            {filteredRooms.length > 0 ? (
-              filteredRooms.map((room) => (
-                <li key={room.id} className="flex items-center justify-between">
-                  <Link
-                    to={`/room/${room.id}`}
-                    className="block flex-grow px-4 py-4 sm:px-6 hover:bg-gray-50"
-                  >
-                    <div className="flex items-center">
-                      <p className="text-sm font-medium text-indigo-600 truncate">
-                        {room.name}
+          <div className="bg-white shadow overflow-hidden sm:rounded-lg w-full">
+            <ul className="divide-y divide-gray-200">
+              {filteredRooms.length > 0 ? (
+                filteredRooms.map((room) => (
+                  <li key={room.id} className="flex items-center justify-between">
+                    <Link
+                      to={`/room/${room.id}`}
+                      className="block flex-grow px-4 py-4 sm:px-6 hover:bg-gray-50"
+                    >
+                      <div className="flex items-center">
+                        <p className="text-sm font-medium text-indigo-600 truncate">
+                          {room.name}
+                        </p>
+                      </div>
+                    </Link>
+                    <div className="ml-2 flex-shrink-0 flex items-center space-x-2 pr-4 sm:pr-6">
+                      <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        Created by {room.created_by.username}
                       </p>
+                      {user?.username === room.created_by.username && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            deleteRoom(room.id);
+                          }}
+                          className="px-2 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
-                  </Link>
-                  <div className="ml-2 flex-shrink-0 flex items-center space-x-2 pr-4 sm:pr-6">
-                    <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                      Created by {room.created_by.username}
-                    </p>
-                    {user?.username === room.created_by.username && (
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          deleteRoom(room.id);
-                        }}
-                        className="px-2 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </div>
-                </li>
-              ))
-            ) : (
-              <p className="p-4 text-gray-500">No rooms found.</p>
-            )}
-          </ul>
+                  </li>
+                ))
+              ) : (
+                <p className="p-4 text-gray-500">No rooms found.</p>
+              )}
+            </ul>
+          </div>
         </div>
       </div>
 

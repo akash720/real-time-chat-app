@@ -27,6 +27,7 @@ const ChatRoom: React.FC = () => {
   const [newMessage, setNewMessage] = useState('');
   const [room, setRoom] = useState<Room | null>(null);
   const [websocket, setWebsocket] = useState<WebSocket | null>(null);
+  const [onlineUsersCount, setOnlineUsersCount] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -34,41 +35,49 @@ const ChatRoom: React.FC = () => {
   useEffect(() => {
     fetchRoom();
     fetchMessages();
-    setupWebSocket();
 
-    return () => {
-      if (websocket) {
-        websocket.close();
-      }
+    const token = localStorage.getItem('token');
+    const ws = new WebSocket(`ws://localhost:8000/ws/chat/${roomId}/?token=${token}`);
+
+    ws.onopen = () => {
     };
-  }, [roomId]);
-
-  const setupWebSocket = () => {
-    const ws = new WebSocket(`ws://localhost:8000/ws/chat/${roomId}/`);
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        {
-          id: Date.now(),
-          content: data.message,
-          timestamp: new Date().toISOString(),
-          user: {
-            id: data.user_id,
-            username: data.username,
+      if (data.type === 'online_users_count') {
+        setOnlineUsersCount(data.count);
+      } else {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            id: Date.now(),
+            content: data.message,
+            timestamp: new Date().toISOString(),
+            user: {
+              id: data.user_id,
+              username: data.username,
+            },
           },
-        },
-      ]);
-      scrollToBottom();
+        ]);
+        scrollToBottom();
+      }
     };
 
-    ws.onclose = () => {
-      console.log('WebSocket connection closed');
+    ws.onclose = (event) => {
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error for room:', roomId, error);
     };
 
     setWebsocket(ws);
-  };
+
+    return () => {
+      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+        ws.close();
+      }
+    };
+  }, [roomId]);
 
   const fetchRoom = async () => {
     try {
@@ -137,6 +146,12 @@ const ChatRoom: React.FC = () => {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2">
             {room?.name}
+            {onlineUsersCount !== null && (
+              <span className="ml-3 text-sm font-medium text-gray-500">
+                <span className="inline-block w-2 h-2 mr-1 bg-green-500 rounded-full"></span>
+                {onlineUsersCount} online
+              </span>
+            )}
           </h1>
           <div className="flex items-center space-x-4">
             <button

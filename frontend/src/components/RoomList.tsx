@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import UserProfile from './UserProfile';
 
 interface Room {
   id: number;
@@ -18,6 +19,7 @@ const RoomList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [showUserProfileModal, setShowUserProfileModal] = useState(false);
 
   useEffect(() => {
     fetchRooms();
@@ -93,6 +95,15 @@ const RoomList: React.FC = () => {
           </div>
           <div className="flex items-center space-x-4">
             <span className="text-gray-700">Welcome, {user?.username}!</span>
+            <button
+              onClick={() => setShowUserProfileModal(true)}
+              className="px-3 py-2 rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              aria-label="User Profile"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+              </svg>
+            </button>
             <button
               onClick={handleLogout}
               className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
@@ -195,6 +206,10 @@ const RoomList: React.FC = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {showUserProfileModal && (
+        <UserProfile onClose={() => setShowUserProfileModal(false)} />
       )}
     </div>
   );

@@ -27,10 +27,13 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
         const refreshToken = localStorage.getItem('refresh_token');
+        if (!refreshToken) {
+          throw new Error('No refresh token');
+        }
         const response = await axios.post('http://localhost:8000/api/token/refresh/', {
           refresh: refreshToken
         });
@@ -41,8 +44,8 @@ api.interceptors.response.use(
       } catch (refreshError) {
         localStorage.removeItem('token');
         localStorage.removeItem('refresh_token');
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
+        // Instead of redirecting, just reject the promise
+        return Promise.reject(error);
       }
     }
     return Promise.reject(error);
@@ -97,11 +100,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { access, refresh } = response.data;
       localStorage.setItem('token', access);
       localStorage.setItem('refresh_token', refresh);
-      setIsAuthenticated(true);
       await fetchUserData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
-      throw error;
+      // Remove any existing tokens on login failure
+      localStorage.removeItem('token');
+      localStorage.removeItem('refresh_token');
+      setIsAuthenticated(false);
+      setUser(null);
+      throw new Error(error.response?.data?.detail || 'Invalid username or password');
     }
   };
 

@@ -43,6 +43,12 @@ class RoomViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
+    def destroy(self, request, *args, **kwargs):
+        room = self.get_object()
+        if room.created_by != request.user:
+            return Response({'detail': 'You do not have permission to delete this room.'}, status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)
+
     @action(detail=True, methods=["GET"])
     def messages(self, request, pk=None):
         room = self.get_object()
@@ -58,3 +64,9 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        message = self.get_object()
+        if message.user != request.user:
+            return Response({'detail': 'You do not have permission to delete this message.'}, status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)

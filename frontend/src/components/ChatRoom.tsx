@@ -31,6 +31,8 @@ const ChatRoom: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [messageAnimIds, setMessageAnimIds] = useState<number[]>([]);
+  const [countAnim, setCountAnim] = useState(false);
 
   useEffect(() => {
     fetchRoom();
@@ -78,6 +80,22 @@ const ChatRoom: React.FC = () => {
       }
     };
   }, [roomId]);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      setMessageAnimIds((ids) => [...ids, messages[messages.length - 1].id]);
+      setTimeout(() => {
+        setMessageAnimIds((ids) => ids.slice(1));
+      }, 400);
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (onlineUsersCount !== null) {
+      setCountAnim(true);
+      setTimeout(() => setCountAnim(false), 400);
+    }
+  }, [onlineUsersCount]);
 
   const fetchRoom = async () => {
     try {
@@ -147,7 +165,7 @@ const ChatRoom: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2">
             {room?.name}
             {onlineUsersCount !== null && (
-              <span className="ml-3 text-sm font-medium text-gray-500">
+              <span className={`ml-3 text-sm font-medium text-gray-500 transition-transform duration-200 ${countAnim ? 'scale-125 text-green-600' : ''}`}>
                 <span className="inline-block w-2 h-2 mr-1 bg-green-500 rounded-full"></span>
                 {onlineUsersCount} online
               </span>
@@ -175,11 +193,11 @@ const ChatRoom: React.FC = () => {
                 }`}
               >
                 <div
-                  className={`rounded-lg px-4 py-2 max-w-sm ${
+                  className={`rounded-lg px-4 py-2 max-w-sm transition-all duration-300 ${
                     message.user.id === user?.id
                       ? 'bg-indigo-600 text-white'
                       : 'bg-gray-100 text-gray-900'
-                  }`}
+                  } ${messageAnimIds.includes(message.id) ? 'animate-fadeInUp' : ''}`}
                 >
                   {message.user.id !== user?.id && (
                     <p className="text-sm font-bold mb-1 text-indigo-600">
@@ -207,7 +225,7 @@ const ChatRoom: React.FC = () => {
               />
               <button
                 type="submit"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 active:scale-95 transition-transform duration-100"
               >
                 Send
               </button>

@@ -137,7 +137,7 @@ const RoomList: React.FC = () => {
             <ul className="divide-y divide-gray-200">
               {filteredRooms.length > 0 ? (
                 filteredRooms.map((room) => (
-                  <li key={room.id} className="flex items-center justify-between">
+                  <li key={room.id} className="flex items-center justify-between transition-transform duration-200 hover:scale-[1.02] hover:bg-indigo-50 animate-fadeInUp">
                     <Link
                       to={`/room/${room.id}`}
                       className="block flex-grow px-4 py-4 sm:px-6 hover:bg-gray-50"
@@ -176,8 +176,8 @@ const RoomList: React.FC = () => {
       </div>
 
       {showCreateRoomModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-          <div className="bg-white p-8 rounded-lg shadow-xl max-w-sm w-full">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-xl max-w-sm w-full transform transition-all duration-200 opacity-100 scale-100 animate-fadeInUp">
             <h2 className="text-2xl font-bold mb-4 text-gray-900">Create New Room</h2>
             <form onSubmit={createRoom}>
               <input

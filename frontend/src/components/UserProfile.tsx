@@ -13,11 +13,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
     if (user) {
       setUsername(user.username);
     }
+    setShow(true);
   }, [user]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -71,9 +73,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
     }
   };
 
+  const handleClose = () => {
+    setShow(false);
+    setTimeout(onClose, 200); // match transition duration
+  };
+
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+      <div
+        className={`bg-white p-8 rounded-lg shadow-xl max-w-md w-full transform transition-all duration-200 ${show ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+      >
         <h2 className="text-2xl font-bold mb-4 text-gray-900">User Profile</h2>
         <form onSubmit={handleUpdateProfile}>
           <div className="mb-4">
@@ -120,7 +129,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
           <div className="flex justify-end space-x-2">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Cancel

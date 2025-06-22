@@ -172,14 +172,16 @@ const ChatRoom: React.FC = () => {
               Back to Rooms
             </button>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2">
-            {room?.name}
-            {onlineUsersCount !== null && (
-              <span className={`ml-3 text-sm font-medium text-gray-500 transition-transform duration-200 ${countAnim ? 'scale-125 text-green-600' : ''}`}>
-                <span className="inline-block w-2 h-2 mr-1 bg-green-500 rounded-full"></span>
-                {onlineUsersCount} online
-              </span>
-            )}
+          <h1 className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2">
+            <span className="flex items-center justify-center space-x-3">
+              <span className="text-2xl font-bold text-gray-900 pb-[4%]">{room?.name}</span>
+              {onlineUsersCount !== null && (
+                <span className={`flex items-center ml-1 text-sm font-medium text-gray-500 ${countAnim ? 'text-green-600' : ''} bg-black bg-opacity-10 px-2 py-0.5 rounded`}>
+                  <span className="inline-block w-2 h-2 mr-1 bg-green-500 rounded-full"></span>
+                  {onlineUsersCount} online
+                </span>
+              )}
+            </span>
           </h1>
           <div className="flex items-center space-x-4">
             <button

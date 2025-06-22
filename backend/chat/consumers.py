@@ -8,8 +8,9 @@ from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
+
 class ChatConsumer(AsyncWebsocketConsumer):
-    online_users = defaultdict(set) # Dictionary to store online users per room: {room_id: set of user_ids}
+    online_users = defaultdict(set)  # Dictionary to store online users per room: {room_id: set of user_ids}
 
     async def connect(self):
         self.room_id = self.scope["url_route"]["kwargs"]["room_id"]
@@ -39,7 +40,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             logger.info(f"User {self.user_id} removed from online_users for room {self.room_id}.")
         else:
             logger.warning(f"User {self.user_id} not found in online_users for room {self.room_id} during disconnect.")
-        
+
         logger.info(f"Online users in room {self.room_id} after disconnect: {self.online_users[self.room_id]}")
         await self.broadcast_online_users_count()
 
@@ -56,12 +57,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # Send message to room group
         await self.channel_layer.group_send(
-            self.room_group_name, {
-                "type": "chat_message",
-                "message": message,
-                "user_id": user_id,
-                "username": user.username
-            }
+            self.room_group_name,
+            {"type": "chat_message", "message": message, "user_id": user_id, "username": user.username},
         )
 
     async def chat_message(self, event):
@@ -70,29 +67,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
         username = event["username"]
 
         # Send message to WebSocket
-        await self.send(text_data=json.dumps({
-            "message": message,
-            "user_id": user_id,
-            "username": username
-        }))
-    
+        await self.send(text_data=json.dumps({"message": message, "user_id": user_id, "username": username}))
+
     async def broadcast_online_users_count(self):
         count = len(self.online_users[self.room_id])
         logger.info(f"Broadcasting online users count for room {self.room_id}: {count}")
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                "type": "online_users_count",
-                "count": count
-            }
-        )
+        await self.channel_layer.group_send(self.room_group_name, {"type": "online_users_count", "count": count})
 
     async def online_users_count(self, event):
         count = event["count"]
-        await self.send(text_data=json.dumps({
-            "type": "online_users_count",
-            "count": count
-        }))
+        await self.send(text_data=json.dumps({"type": "online_users_count", "count": count}))
 
     @database_sync_to_async
     def save_message(self, user_id, message):

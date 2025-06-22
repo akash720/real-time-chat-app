@@ -1,6 +1,7 @@
 # backend/chat/middleware.py
 # No imports at the module level that touch Django
 
+
 class TokenAuthMiddleware:
     def __init__(self, app):
         self.app = app
@@ -20,19 +21,19 @@ class TokenAuthMiddleware:
             User = get_user_model()
             try:
                 access_token = AccessToken(token)
-                user = User.objects.get(id=access_token['user_id'])
+                user = User.objects.get(id=access_token["user_id"])
                 return user
             except Exception as e:
                 logger.error(f"Error authenticating user from token: {e}")
                 return AnonymousUser()
 
-        query_string = scope['query_string'].decode()
-        query_params = dict(qp.split('=') for qp in query_string.split('&') if '=' in qp)
-        token = query_params.get('token')
+        query_string = scope["query_string"].decode()
+        query_params = dict(qp.split("=") for qp in query_string.split("&") if "=" in qp)
+        token = query_params.get("token")
 
         if token:
-            scope['user'] = await get_user_from_token(token)
+            scope["user"] = await get_user_from_token(token)
         else:
-            scope['user'] = AnonymousUser()
+            scope["user"] = AnonymousUser()
 
-        return await self.app(scope, receive, send) 
+        return await self.app(scope, receive, send)

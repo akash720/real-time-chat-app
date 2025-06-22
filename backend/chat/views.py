@@ -46,7 +46,9 @@ class RoomViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         room = self.get_object()
         if room.created_by != request.user:
-            return Response({'detail': 'You do not have permission to delete this room.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": "You do not have permission to delete this room."}, status=status.HTTP_403_FORBIDDEN
+            )
         return super().destroy(request, *args, **kwargs)
 
     @action(detail=True, methods=["GET"])
@@ -68,5 +70,7 @@ class MessageViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         message = self.get_object()
         if message.user != request.user:
-            return Response({'detail': 'You do not have permission to delete this message.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": "You do not have permission to delete this message."}, status=status.HTTP_403_FORBIDDEN
+            )
         return super().destroy(request, *args, **kwargs)

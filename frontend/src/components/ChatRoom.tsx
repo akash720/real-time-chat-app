@@ -21,6 +21,44 @@ interface Room {
   };
 }
 
+// Helper to group messages by date
+function groupMessagesByDate(messages: Message[]) {
+  return messages.reduce((groups: Record<string, Message[]>, message) => {
+    const date = new Date(message.timestamp);
+    // Only keep the date part (YYYY-MM-DD)
+    const dateKey = date.toISOString().split('T')[0];
+    if (!groups[dateKey]) groups[dateKey] = [];
+    groups[dateKey].push(message);
+    return groups;
+  }, {});
+}
+
+// Helper to get WhatsApp-style date label
+function getDateLabel(dateString: string) {
+  const today = new Date();
+  const date = new Date(dateString);
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const isToday =
+    date.getFullYear() === today.getFullYear() &&
+    date.getMonth() === today.getMonth() &&
+    date.getDate() === today.getDate();
+  const isYesterday =
+    date.getFullYear() === yesterday.getFullYear() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getDate() === yesterday.getDate();
+
+  if (isToday) return 'Today';
+  if (isYesterday) return 'Yesterday';
+  // Otherwise, return formatted date (e.g., 12 Mar 2024)
+  return date.toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
 const ChatRoom: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -197,31 +235,41 @@ const ChatRoom: React.FC = () => {
       <div className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
         <div className="bg-white shadow sm:rounded-lg flex flex-col h-[calc(100vh-200px)]">
           <div className="flex-1 p-4 overflow-y-auto" ref={messagesContainerRef}>
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`mb-4 flex ${
-                  message.user.id === user?.id ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                <div
-                  className={`rounded-lg px-4 py-2 max-w-sm transition-all duration-300 ${
-                    message.user.id === user?.id
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-gray-100 text-gray-900'
-                  } ${messageAnimIds.includes(message.id) ? 'animate-fadeInUp' : ''}`}
-                >
-                  {message.user.id !== user?.id && (
-                    <p className="text-sm font-bold mb-1 text-indigo-600">
-                      {message.user.username}
-                    </p>
-                  )}
-                  <p className="text-sm">{message.content}</p>
-                  <p className="text-xs mt-1 opacity-75">
-                    {new Date(message.timestamp).toLocaleTimeString()}
-                  </p>
+            {/* Group messages by date and render date headers */}
+            {Object.entries(groupMessagesByDate(messages)).map(([date, msgs]) => (
+              <React.Fragment key={date}>
+                <div className="flex justify-center my-4">
+                  <span className="bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded-full shadow-sm">
+                    {getDateLabel(date)}
+                  </span>
                 </div>
-              </div>
+                {msgs.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`mb-4 flex ${
+                      message.user.id === user?.id ? 'justify-end' : 'justify-start'
+                    }`}
+                  >
+                    <div
+                      className={`rounded-lg px-4 py-2 max-w-sm transition-all duration-300 ${
+                        message.user.id === user?.id
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-gray-100 text-gray-900'
+                      } ${messageAnimIds.includes(message.id) ? 'animate-fadeInUp' : ''}`}
+                    >
+                      {message.user.id !== user?.id && (
+                        <p className="text-sm font-bold mb-1 text-indigo-600">
+                          {message.user.username}
+                        </p>
+                      )}
+                      <p className="text-sm">{message.content}</p>
+                      <p className="text-xs mt-1 opacity-75">
+                        {new Date(message.timestamp).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </React.Fragment>
             ))}
             <div ref={messagesEndRef} />
           </div>

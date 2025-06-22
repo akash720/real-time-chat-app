@@ -4,14 +4,12 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from .models import Room, Message
 from django.contrib.auth.models import User
-from collections import defaultdict
+from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
-    online_users = defaultdict(set)  # Dictionary to store online users per room: {room_id: set of user_ids}
-
     async def connect(self):
         self.room_id = self.scope["url_route"]["kwargs"]["room_id"]
         self.room_group_name = f"chat_{self.room_id}"
@@ -23,9 +21,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
 
-        # Add user to online users set and broadcast
-        self.online_users[self.room_id].add(self.user_id)
-        logger.info(f"Online users in room {self.room_id}: {self.online_users[self.room_id]}")
+        # Add user to Redis set and broadcast
+        await self.add_online_user(self.room_id, self.user_id)
         await self.broadcast_online_users_count()
 
     async def disconnect(self, close_code):
@@ -34,14 +31,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Leave room group
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
-        # Remove user from online users set and broadcast
-        if self.user_id in self.online_users[self.room_id]:
-            self.online_users[self.room_id].remove(self.user_id)
-            logger.info(f"User {self.user_id} removed from online_users for room {self.room_id}.")
-        else:
-            logger.warning(f"User {self.user_id} not found in online_users for room {self.room_id} during disconnect.")
-
-        logger.info(f"Online users in room {self.room_id} after disconnect: {self.online_users[self.room_id]}")
+        # Remove user from Redis set and broadcast
+        await self.remove_online_user(self.room_id, self.user_id)
         await self.broadcast_online_users_count()
 
     async def receive(self, text_data):
@@ -70,7 +61,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({"message": message, "user_id": user_id, "username": username}))
 
     async def broadcast_online_users_count(self):
-        count = len(self.online_users[self.room_id])
+        count = await self.get_online_users_count(self.room_id)
         logger.info(f"Broadcasting online users count for room {self.room_id}: {count}")
         await self.channel_layer.group_send(self.room_group_name, {"type": "online_users_count", "count": count})
 
@@ -87,3 +78,24 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_user(self, user_id):
         return User.objects.get(id=user_id)
+
+    @database_sync_to_async
+    def add_online_user(self, room_id, user_id):
+        key = f"online_users:{room_id}"
+        client = cache.client.get_client()
+        # Add user to the room (python set stored using key)
+        client.sadd(key, user_id)
+
+    @database_sync_to_async
+    def remove_online_user(self, room_id, user_id):
+        key = f"online_users:{room_id}"
+        client = cache.client.get_client()
+        # Remove user from the room
+        client.srem(key, user_id)
+
+    @database_sync_to_async
+    def get_online_users_count(self, room_id):
+        key = f"online_users:{room_id}"
+        client = cache.client.get_client()
+        # Returns number of users in a room (cardinality)
+        return client.scard(key)

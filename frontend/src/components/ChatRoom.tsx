@@ -29,6 +29,7 @@ const ChatRoom: React.FC = () => {
   const [websocket, setWebsocket] = useState<WebSocket | null>(null);
   const [onlineUsersCount, setOnlineUsersCount] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [messageAnimIds, setMessageAnimIds] = useState<number[]>([]);
@@ -49,6 +50,7 @@ const ChatRoom: React.FC = () => {
       if (data.type === 'online_users_count') {
         setOnlineUsersCount(data.count);
       } else {
+        const shouldScroll = isUserAtBottom();
         setMessages((prevMessages) => [
           ...prevMessages,
           {
@@ -61,7 +63,9 @@ const ChatRoom: React.FC = () => {
             },
           },
         ]);
-        scrollToBottom();
+        if (shouldScroll) {
+          setTimeout(() => scrollToBottom(), 0);
+        }
       }
     };
 
@@ -119,7 +123,7 @@ const ChatRoom: React.FC = () => {
         },
       });
       setMessages(response.data);
-      scrollToBottom();
+      setTimeout(() => scrollToBottom(), 0);
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
@@ -145,6 +149,12 @@ const ChatRoom: React.FC = () => {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const isUserAtBottom = () => {
+    const container = messagesContainerRef.current;
+    if (!container) return true;
+    return container.scrollHeight - container.scrollTop - container.clientHeight < 10;
   };
 
   return (
@@ -184,7 +194,7 @@ const ChatRoom: React.FC = () => {
 
       <div className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
         <div className="bg-white shadow sm:rounded-lg flex flex-col h-[calc(100vh-200px)]">
-          <div className="flex-1 p-4 overflow-y-auto">
+          <div className="flex-1 p-4 overflow-y-auto" ref={messagesContainerRef}>
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -237,4 +247,4 @@ const ChatRoom: React.FC = () => {
   );
 };
 
-export default ChatRoom; 
+export default ChatRoom;

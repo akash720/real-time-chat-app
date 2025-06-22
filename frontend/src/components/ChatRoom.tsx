@@ -239,7 +239,7 @@ const ChatRoom: React.FC = () => {
             {Object.entries(groupMessagesByDate(messages)).map(([date, msgs]) => (
               <React.Fragment key={date}>
                 <div className="flex justify-center my-4">
-                  <span className="bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded-full shadow-sm">
+                  <span className="bg-emerald-100 text-emerald-700 text-xs px-3 py-1 rounded-full shadow-sm">
                     {getDateLabel(date)}
                   </span>
                 </div>

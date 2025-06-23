@@ -6,7 +6,7 @@ A real-time chat application built with Django REST Framework and React.
 
 ## Tech Stack & Architecture
 
-![Tech Stack Diagram](frontend/public/techstack.png)
+![Tech Stack Diagram](images/techstack.png)
 
 - **Frontend:** React (TypeScript, Tailwind CSS)
 - **Backend:** Django REST Framework, Django Channels (WebSocket)
@@ -31,7 +31,7 @@ A real-time chat application built with Django REST Framework and React.
 
 1. **Clone the repository:**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/akash720/real-time-chat-app.git
    cd real-time-chat-app
    ```
 2. **Start all services:**
@@ -49,6 +49,7 @@ A real-time chat application built with Django REST Framework and React.
 ### Build & Deploy
 
 1. **Build Docker images and restart deployments:**
+   From root project directory, run:
    ```bash
    docker build -t chat-frontend:latest ./frontend && kubectl rollout restart deployment chat-frontend
    docker build -t chat-backend:latest ./backend && kubectl rollout restart deployment chat-backend
@@ -62,6 +63,8 @@ A real-time chat application built with Django REST Framework and React.
    ```bash
    kubectl apply -f k8s/
    ```
+
+**Access the application on your localhost using the default ports after deployment.**
 
 ### Required Secrets
 
@@ -122,3 +125,10 @@ kubectl apply -f k8s/secrets.yaml
 
 ## License
 MIT 
+
+---
+
+## Screenshots
+![Login Page](images/login.jpg)
+![Room List](images/room_list.jpg)
+![Chat Room](images/chat_room.jpg)

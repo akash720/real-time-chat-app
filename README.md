@@ -123,12 +123,13 @@ kubectl apply -f k8s/secrets.yaml
 
 ---
 
-## License
-MIT 
-
----
-
 ## Screenshots
 ![Login Page](images/login.png)
 ![Room List](images/room_list.png)
+![Profile And New Room](images/profile_and_new_room.png)
 ![Chat Room](images/chat_room.png)
+
+---
+
+## License
+MIT 

@@ -129,6 +129,6 @@ MIT
 ---
 
 ## Screenshots
-![Login Page](images/login.jpg)
-![Room List](images/room_list.jpg)
-![Chat Room](images/chat_room.jpg)
+![Login Page](images/login.png)
+![Room List](images/room_list.png)
+![Chat Room](images/chat_room.png)

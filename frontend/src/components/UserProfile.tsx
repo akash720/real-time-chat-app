@@ -4,9 +4,10 @@ import { useAuth } from '../contexts/AuthContext';
 
 interface UserProfileProps {
   onClose: () => void;
+  onProfileUpdate?: () => void;
 }
 
-const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
+const UserProfile: React.FC<UserProfileProps> = ({ onClose, onProfileUpdate }) => {
   const { user, login, setUser } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -38,6 +39,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
         Authorization: `Bearer ${token}`
       };
 
+      let updated = false;
       if (username !== user?.username) {
         // Update username
         await axios.patch(
@@ -48,6 +50,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
         if (user) {
           setUser({ ...user, username: username }); // Update user context directly
         }
+        if (onProfileUpdate) onProfileUpdate();
+        updated = true;
       }
 
       if (password) {
@@ -63,13 +67,33 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
         );
         setPassword('');
         setConfirmPassword('');
+        updated = true;
       }
 
-      setMessage('Profile updated successfully!');
+      if (updated) {
+        setMessage('Profile updated successfully!');
+        setTimeout(() => {
+          handleClose();
+        }, 500);
+      }
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error updating profile:', err);
-      setError('Failed to update profile.');
+      if (err.response && err.response.data) {
+        // Try to extract a specific error message from backend
+        const data = err.response.data;
+        if (typeof data === 'string') {
+          setError(data);
+        } else if (typeof data === 'object') {
+          // Show first error message from object
+          const firstKey = Object.keys(data)[0];
+          setError(Array.isArray(data[firstKey]) ? data[firstKey][0] : data[firstKey]);
+        } else {
+          setError('Failed to update profile.');
+        }
+      } else {
+        setError('Failed to update profile.');
+      }
     }
   };
 

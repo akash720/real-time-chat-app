@@ -209,7 +209,7 @@ const RoomList: React.FC = () => {
       )}
 
       {showUserProfileModal && (
-        <UserProfile onClose={() => setShowUserProfileModal(false)} />
+        <UserProfile onClose={() => setShowUserProfileModal(false)} onProfileUpdate={fetchRooms} />
       )}
     </div>
   );

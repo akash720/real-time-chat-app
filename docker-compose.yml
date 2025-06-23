@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+      - backend
+
+  backend:
+    build: ./backend
+    expose:
+      - "8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - DEBUG=1
+      - DJANGO_SETTINGS_MODULE=chat_project.settings
+      - DJANGO_SECRET_KEY=your-secret-key-here
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/chat_db
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+  frontend:
+    build: ./frontend
+    expose:
+      - "3000"
+    environment:
+      - REACT_APP_API_URL=/api
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=chat_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  redis:
+    image: redis:7
+    expose:
+      - "6379"
+
+volumes:
+  postgres_data: 

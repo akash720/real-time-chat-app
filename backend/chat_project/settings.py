@@ -126,6 +126,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    'EXCEPTION_HANDLER': 'chat_project.utils.custom_exception_handler',
 }
 
 # JWT settings

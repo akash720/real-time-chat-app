@@ -6,15 +6,88 @@ A real-time chat application built with Django REST Framework and React.
 
 ## Tech Stack & Architecture
 
-![Tech Stack Diagram](images/techstack.png)
+![Architecture Diagram](images/architecture_diagram.svg)
 
-- **Frontend:** React (TypeScript, Tailwind CSS)
-- **Backend:** Django REST Framework, Django Channels (WebSocket)
-- **Database:** PostgreSQL
-- **WebSocket Layer:** Redis
-- **Proxy:** NGINX
-- **Containerization:** Docker
-- **Orchestration:** Kubernetes
+### **📊 Data Flow (Top to Bottom)**
+1. **Users** → **Internet** → **Nginx Load Balancer**
+2. **Nginx** routes traffic to appropriate services:
+   - `/` → React Frontend
+   - `/api/` → Django Backend
+   - `/ws/` → WebSocket Consumer
+3. **Frontend** communicates with both **Backend** and **WebSocket Consumer**
+4. **Backend** and **WebSocket Consumer** both access **PostgreSQL** and **Redis**
+
+### **🏗️ Key Components**
+
+#### **Frontend (React + TypeScript)**
+- Modern Single Page Application with real-time capabilities
+- JWT authentication with automatic token refresh
+- WebSocket integration for live messaging
+- Responsive design with Tailwind CSS
+- Component-based architecture:
+  - `ChatRoom`: Real-time messaging interface
+  - `RoomList`: Room management and creation
+  - `UserProfile`: User profile management
+  - `Login/Register`: Authentication forms
+
+#### **Backend (Django + Channels)**
+- RESTful API for CRUD operations
+- WebSocket consumer for real-time communication
+- JWT-based authentication system
+- CORS configuration for frontend integration
+- Models:
+  - `User`: Django's built-in user model
+  - `Room`: Chat room management
+  - `Message`: Message storage with timestamps
+  - `UserProfile`: Extended user information with online status
+
+#### **Real-time Communication Layer**
+- Room-based message broadcasting
+- Online user tracking per room using Redis sets
+- Redis-backed channel layers for scalability
+- WebSocket consumer handles:
+  - User connections/disconnections
+  - Message broadcasting
+  - Online user count updates
+
+#### **Data Storage**
+- **PostgreSQL**: Persistent data storage
+  - Users, Rooms, Messages, UserProfiles tables
+  - ACID compliance for data integrity
+- **Redis**: Real-time features and caching
+  - Channel layers for WebSocket communication
+  - Online users tracking per room
+  - Session storage and caching
+
+#### **Infrastructure**
+- **Nginx**: Reverse proxy and load balancer
+  - Routes frontend requests
+  - Proxies API calls to Django backend
+  - Handles WebSocket upgrades
+- **Docker Compose**: Development environment
+  - Multi-container setup
+  - Volume mounting for hot reloading
+  - Environment variable management
+- **Kubernetes**: Production deployment
+  - Pod orchestration and scaling
+  - Service discovery
+  - Persistent volumes for data
+  - Secrets management
+
+
+### **🔒 Security Features**
+- JWT authentication with refresh tokens
+- CORS configuration for secure cross-origin requests
+- User permission checks for room/message deletion
+- Environment-based secret management
+- HTTPS-ready configuration
+
+### **📈 Scalability Considerations**
+- Horizontal scaling through load balancer
+- Redis channel layers for WebSocket scaling
+- Database connection pooling
+- Stateless backend design
+- Container-based deployment for easy scaling
 
 ---
 
